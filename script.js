@@ -238,14 +238,16 @@ SMAN 2 PADALARANG
       
       // Cek berbagai kemungkinan warna ungu
       const hasPurpleBackground = 
-        bodyStyle.includes('purple') ||
-        bodyStyle.includes('#800080') ||
-        bodyStyle.includes('#9370DB') ||
-        bodyStyle.includes('#8B008B') ||
-        bodyBgColor.includes('purple') ||
-        bodyBgColor.includes('#800080') ||
-        bodyBgColor.includes('#9370DB') ||
-        bodyBgColor.includes('#8B008B');
+        bodyStyle.toLowerCase().includes('purple') ||
+        bodyStyle.toLowerCase().includes('#800080') ||
+        bodyStyle.toLowerCase().includes('#9370db') ||
+        bodyStyle.toLowerCase().includes('#8b008b') ||
+        bodyStyle.toLowerCase().includes('#9932cc') ||
+        bodyBgColor.toLowerCase().includes('purple') ||
+        bodyBgColor.toLowerCase().includes('#800080') ||
+        bodyBgColor.toLowerCase().includes('#9370db') ||
+        bodyBgColor.toLowerCase().includes('#8b008b') ||
+        bodyBgColor.toLowerCase().includes('#9932cc');
       
       if (!hasPurpleBackground) {
         issues.push('Berikan warna latar belakang ungu pada halaman');
@@ -282,77 +284,150 @@ Adab adalah warisan budaya yang harus terus dipegang teguh. Jadikanlah kesopanan
     validate: (doc, html) => {
       const issues = [];
       
+      // Helper function untuk cek warna dengan berbagai format
+      const checkElementColor = (element, expectedColors) => {
+        if (!element) return false;
+        
+        // Cek warna di element itu sendiri
+        const checkSingleElement = (el) => {
+          const colorAttr = el.getAttribute('color') || '';
+          const styleAttr = el.getAttribute('style') || '';
+          
+          // Cek di atribut color
+          for (const color of expectedColors) {
+            if (colorAttr.toLowerCase().includes(color.toLowerCase())) {
+              return true;
+            }
+          }
+          
+          // Cek di style attribute
+          for (const color of expectedColors) {
+            const colorPatterns = [
+              `color:${color}`,
+              `color: ${color}`,
+              `color:${color};`,
+              `color: ${color};`
+            ];
+            for (const pattern of colorPatterns) {
+              if (styleAttr.toLowerCase().includes(pattern.toLowerCase())) {
+                return true;
+              }
+            }
+          }
+          
+          // Cek computed style
+          if (window.getComputedStyle) {
+            const computedStyle = getComputedStyle(el);
+            const computedColor = computedStyle.color;
+            
+            // Cek apakah computed color sesuai dengan expected
+            for (const color of expectedColors) {
+              const colorLower = color.toLowerCase();
+              if (colorLower === 'red' || colorLower === '#ff0000' || colorLower === '#f00' || 
+                  colorLower === 'rgb(255,0,0)' || colorLower === 'rgb(255, 0, 0)') {
+                if (computedColor.includes('255, 0, 0') || computedColor.includes('255,0,0') || 
+                    computedColor.includes('#ff0000')) {
+                  return true;
+                }
+              }
+              if (colorLower === 'blue' || colorLower === '#0000ff' || colorLower === '#00f' || 
+                  colorLower === 'rgb(0,0,255)' || colorLower === 'rgb(0, 0, 255)') {
+                if (computedColor.includes('0, 0, 255') || computedColor.includes('0,0,255') || 
+                    computedColor.includes('#0000ff')) {
+                  return true;
+                }
+              }
+              if (colorLower === 'green' || colorLower === '#008000' || colorLower === '#00ff00' || 
+                  colorLower === '#0f0' || colorLower === 'rgb(0,128,0)' || colorLower === 'rgb(0, 128, 0)' ||
+                  colorLower === 'rgb(0,255,0)' || colorLower === 'rgb(0, 255, 0)') {
+                if (computedColor.includes('0, 128, 0') || computedColor.includes('0,128,0') || 
+                    computedColor.includes('0, 255, 0') || computedColor.includes('0,255,0') ||
+                    computedColor.includes('#008000') || computedColor.includes('#00ff00')) {
+                  return true;
+                }
+              }
+              if (colorLower === 'yellow' || colorLower === '#ffff00' || colorLower === '#ff0' || 
+                  colorLower === 'rgb(255,255,0)' || colorLower === 'rgb(255, 255, 0)') {
+                if (computedColor.includes('255, 255, 0') || computedColor.includes('255,255,0') || 
+                    computedColor.includes('#ffff00')) {
+                  return true;
+                }
+              }
+            }
+          }
+          
+          return false;
+        };
+        
+        // Cek element itu sendiri
+        if (checkSingleElement(element)) {
+          return true;
+        }
+        
+        // Cek parent elements (untuk case: <font color="red"><h1>text</h1></font>)
+        let parent = element.parentElement;
+        while (parent) {
+          if (checkSingleElement(parent)) {
+            return true;
+          }
+          parent = parent.parentElement;
+        }
+        
+        // Cek child elements (untuk case: <h1><font color="red">text</font></h1>)
+        const childElements = element.querySelectorAll('*');
+        for (const child of childElements) {
+          if (checkSingleElement(child)) {
+            return true;
+          }
+        }
+        
+        return false;
+      };
+      
       // 1. Cek warna judul H1 harus merah
       const h1 = doc.querySelector('h1');
       if (!h1) {
         issues.push('Judul H1 tidak ditemukan');
       } else {
-        const h1Color = h1.getAttribute('color') || '';
-        const h1Style = h1.getAttribute('style') || '';
-        const hasRedColor = 
-          h1Color.includes('red') ||
-          h1Color.includes('#FF0000') ||
-          h1Style.includes('color:red') ||
-          h1Style.includes('color:#FF0000') ||
-          h1Style.includes('color: rgb(255,0,0)');
-        
+        const hasRedColor = checkElementColor(h1, ['red', '#ff0000', '#f00', 'rgb(255,0,0)', 'rgb(255, 0, 0)']);
         if (!hasRedColor) {
           issues.push('Ubah warna tulisan judul menjadi merah');
         }
       }
       
       // 2. Cek warna paragraf 1 harus biru
-      const p1 = doc.querySelectorAll('p')[0];
-      if (!p1) {
+      const paragraphs = doc.querySelectorAll('p');
+      if (paragraphs.length < 1) {
         issues.push('Paragraf 1 tidak ditemukan');
       } else {
-        const p1Color = p1.getAttribute('color') || '';
-        const p1Style = p1.getAttribute('style') || '';
-        const hasBlueColor = 
-          p1Color.includes('blue') ||
-          p1Color.includes('#0000FF') ||
-          p1Style.includes('color:blue') ||
-          p1Style.includes('color:#0000FF') ||
-          p1Style.includes('color: rgb(0,0,255)');
-        
+        const p1 = paragraphs[0];
+        const hasBlueColor = checkElementColor(p1, ['blue', '#0000ff', '#00f', 'rgb(0,0,255)', 'rgb(0, 0, 255)']);
         if (!hasBlueColor) {
           issues.push('Ubah warna tulisan paragraf 1 menjadi biru');
         }
       }
       
       // 3. Cek warna paragraf 2 harus hijau
-      const p2 = doc.querySelectorAll('p')[1];
-      if (!p2) {
+      if (paragraphs.length < 2) {
         issues.push('Paragraf 2 tidak ditemukan');
       } else {
-        const p2Color = p2.getAttribute('color') || '';
-        const p2Style = p2.getAttribute('style') || '';
-        const hasGreenColor = 
-          p2Color.includes('green') ||
-          p2Color.includes('#008000') ||
-          p2Style.includes('color:green') ||
-          p2Style.includes('color:#008000') ||
-          p2Style.includes('color: rgb(0,128,0)');
-        
+        const p2 = paragraphs[1];
+        const hasGreenColor = checkElementColor(p2, [
+          'green', '#008000', '#00ff00', '#0f0', 
+          'rgb(0,128,0)', 'rgb(0, 128, 0)', 
+          'rgb(0,255,0)', 'rgb(0, 255, 0)'
+        ]);
         if (!hasGreenColor) {
           issues.push('Ubah warna tulisan paragraf 2 menjadi hijau');
         }
       }
       
       // 4. Cek warna paragraf 3 harus kuning
-      const p3 = doc.querySelectorAll('p')[2];
-      if (!p3) {
+      if (paragraphs.length < 3) {
         issues.push('Paragraf 3 tidak ditemukan');
       } else {
-        const p3Color = p3.getAttribute('color') || '';
-        const p3Style = p3.getAttribute('style') || '';
-        const hasYellowColor = 
-          p3Color.includes('yellow') ||
-          p3Color.includes('#FFFF00') ||
-          p3Style.includes('color:yellow') ||
-          p3Style.includes('color:#FFFF00') ||
-          p3Style.includes('color: rgb(255,255,0)');
-        
+        const p3 = paragraphs[2];
+        const hasYellowColor = checkElementColor(p3, ['yellow', '#ffff00', '#ff0', 'rgb(255,255,0)', 'rgb(255, 255, 0)']);
         if (!hasYellowColor) {
           issues.push('Ubah warna tulisan paragraf 3 menjadi kuning');
         }
@@ -392,36 +467,149 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
     validate: (doc, html) => {
       const issues = [];
       
-      // 1. Cek judul pertama (JUDUL 1) berada di tengah
-      const h1First = doc.querySelectorAll('h1')[0];
-      if (!h1First) {
-        issues.push('Judul pertama tidak ditemukan');
-      } else {
-        const h1FirstAlign = h1First.getAttribute('align') || '';
-        const h1FirstStyle = h1First.getAttribute('style') || '';
-        const isFirstCentered = 
-          h1FirstAlign.includes('center') ||
-          h1FirstStyle.includes('text-align:center') ||
-          h1FirstStyle.includes('text-align: center');
+      // Helper function untuk cek apakah element berada di tengah
+      const isElementCentered = (element) => {
+        if (!element) return false;
         
-        if (!isFirstCentered) {
+        // Fungsi untuk cek apakah sebuah node memiliki text "JUDUL 1" atau "JUDUL 2"
+        const hasCorrectText = (node) => {
+          const text = node.textContent.trim();
+          return text === 'JUDUL 1' || text === 'JUDUL 2';
+        };
+        
+        // Fungsi untuk cek center pada element
+        const checkElementForCenter = (el) => {
+          // Cek tag center
+          if (el.tagName === 'CENTER') {
+            return true;
+          }
+          
+          // Cek atribut align
+          const alignAttr = el.getAttribute('align');
+          if (alignAttr && alignAttr.toLowerCase() === 'center') {
+            return true;
+          }
+          
+          // Cek style attribute
+          const styleAttr = el.getAttribute('style') || '';
+          const styleLower = styleAttr.toLowerCase();
+          if (styleLower.includes('text-align:center') || 
+              styleLower.includes('text-align: center') ||
+              styleLower.includes('align:center') ||
+              styleLower.includes('align: center')) {
+            return true;
+          }
+          
+          // Cek computed style
+          if (window.getComputedStyle) {
+            const computedStyle = getComputedStyle(el);
+            const textAlign = computedStyle.textAlign;
+            if (textAlign === 'center') {
+              return true;
+            }
+          }
+          
+          return false;
+        };
+        
+        // Cek element itu sendiri
+        if (checkElementForCenter(element) && hasCorrectText(element)) {
+          return true;
+        }
+        
+        // Cek parent elements - termasuk jika element berada di dalam <center>
+        let parent = element;
+        while (parent) {
+          if (checkElementForCenter(parent)) {
+            // Pastikan parent ini mengandung element kita yang memiliki text yang benar
+            const childNodes = Array.from(parent.childNodes);
+            for (const child of childNodes) {
+              if (child.nodeType === 1 && child.contains(element) && hasCorrectText(element)) {
+                return true;
+              }
+            }
+          }
+          parent = parent.parentElement;
+        }
+        
+        // Cek child elements - khusus untuk <h1><center>JUDUL 2</center></h1>
+        const childElements = element.children;
+        for (const child of childElements) {
+          if (checkElementForCenter(child)) {
+            // Cek apakah child ini mengandung text yang benar
+            if (hasCorrectText(element) || hasCorrectText(child)) {
+              return true;
+            }
+          }
+          
+          // Cek nested children
+          const nestedCenters = child.querySelectorAll('center');
+          for (const center of nestedCenters) {
+            if (hasCorrectText(center) || hasCorrectText(element)) {
+              return true;
+            }
+          }
+        }
+        
+        // Cek khusus untuk <h1><center>JUDUL 2</center></h1>
+        // Cari semua tag center di dalam dokumen
+        const allCenters = doc.querySelectorAll('center');
+        for (const center of allCenters) {
+          if (hasCorrectText(center)) {
+            // Cek apakah center ini berada di dalam h1 yang kita cek
+            if (center.parentElement === element || element.contains(center)) {
+              return true;
+            }
+          }
+        }
+        
+        return false;
+      };
+      
+      // Cari semua h1 elements
+      const h1Elements = Array.from(doc.querySelectorAll('h1'));
+      
+      // Filter hanya h1 yang memiliki text "JUDUL 1" atau "JUDUL 2"
+      const judul1Elements = h1Elements.filter(h1 => 
+        h1.textContent.trim() === 'JUDUL 1' || 
+        h1.innerHTML.includes('JUDUL 1')
+      );
+      
+      const judul2Elements = h1Elements.filter(h1 => 
+        h1.textContent.trim() === 'JUDUL 2' || 
+        h1.innerHTML.includes('JUDUL 2')
+      );
+      
+      // 1. Cek judul pertama (JUDUL 1) berada di tengah
+      if (judul1Elements.length === 0) {
+        issues.push('Judul 1 dengan teks "JUDUL 1" tidak ditemukan');
+      } else {
+        let judul1Centered = false;
+        for (const h1 of judul1Elements) {
+          if (isElementCentered(h1)) {
+            judul1Centered = true;
+            break;
+          }
+        }
+        
+        if (!judul1Centered) {
           issues.push('Judul 1 harus berada di posisi tengah');
         }
       }
       
       // 2. Cek judul kedua (JUDUL 2) berada di tengah
-      const h1Second = doc.querySelectorAll('h1')[1];
-      if (!h1Second) {
-        issues.push('Judul kedua tidak ditemukan');
+      if (judul2Elements.length === 0) {
+        issues.push('Judul 2 dengan teks "JUDUL 2" tidak ditemukan');
       } else {
-        const h1SecondAlign = h1Second.getAttribute('align') || '';
-        const h1SecondStyle = h1Second.getAttribute('style') || '';
-        const isSecondCentered = 
-          h1SecondAlign.includes('center') ||
-          h1SecondStyle.includes('text-align:center') ||
-          h1SecondStyle.includes('text-align: center');
+        let judul2Centered = false;
+        for (const h1 of judul2Elements) {
+          if (isElementCentered(h1)) {
+            judul2Centered = true;
+            break;
+          }
+        }
         
-        if (!isSecondCentered) {
+        if (!judul2Centered) {
           issues.push('Judul 2 harus berada di posisi tengah');
         }
       }
