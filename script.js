@@ -906,7 +906,7 @@ const completed = new Set();
 
 // Timer variables
 let timerInterval = null;
-let timeLeft = 180 * 60; // 180 minutes in seconds
+let timeLeft = 150 * 60; // 150 minutes in seconds
 let testStarted = false;
 let testFinished = false;
 
@@ -1135,7 +1135,7 @@ function showReport() {
     `;
   });
   
-  const timeUsed = 180 - Math.floor(timeLeft / 60);
+  const timeUsed = 150 - Math.floor(timeLeft / 60);
   
   reportContent.innerHTML = `
     <h1>RAPORT TES HTML DASAR</h1>
@@ -1240,3 +1240,4 @@ function initApp() {
 
 // Jalankan inisialisasi ketika halaman dimuat
 document.addEventListener('DOMContentLoaded', initApp);
+
