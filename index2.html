@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tes Bahasa HTML — Kelas XI | SMAN 2 Padalarang</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="timer" id="timer">Waktu: 180:00</div>
+
+  <header>
+    <div class="header-content">
+      <div class="school-info">
+        <div class="school-logo">HTML</div>
+        <div class="school-text">
+          <h1>SMAN 2 PADALARANG</h1>
+          <p>Sekolah Unggulan Berbasis Teknologi</p>
+          <p>Guru Pembimbing : Bagus Yuli Setyawan,ST</p>
+        </div>
+      </div>
+      
+          
+      <div class="test-title">
+        <h2>Tes Bahasa HTML — Debugging Koding</h2>
+        <p>Perbaiki kode sampai lolos validasi tiap tantangan. Isi nama & kelas, jalankan, dan kumpulkan hasil.</p>
+
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid">
+      <!-- Panel kiri: Identitas & daftar tantangan -->
+      <section class="card">
+        <div class="card-header">
+          <h2>Identitas Siswa</h2>
+          <p>Data dipakai di halaman saja (tanpa database)</p>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div>
+              <label for="nama">Nama</label>
+              <input type="text" id="nama" placeholder="Tuliskan nama lengkap"/>
+            </div>
+            <div>
+              <label for="kelas">Kelas</label>
+              <input type="text" id="kelas" placeholder="Contoh: XI IPA 2"/>
+            </div>
+          </div>
+
+          <div style="margin-top: 16px">
+            <div class="status">
+              <span class="dot warn"></span> 
+              <span id="identStatus">Belum lengkap</span>
+            </div>
+          </div>
+
+          <hr style="border:0; border-top:1px solid #243044; margin:16px 0"/>
+
+          <div class="card-header">
+            <h2>Daftar Tantangan</h2>
+            <p>Pilih satu, perbaiki, lalu tandai selesai jika lolos</p>
+          </div>
+          <div class="challenge-list" id="challengeList"></div>
+          
+          <div style="margin-top: 16px">
+            <button class="btn primary" id="startBtn" disabled>Mulai Tes (180 Menit)</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Panel kanan: Editor, Preview, Log -->
+      <section class="card">
+        <div class="card-header">
+          <h2>Editor & Validasi</h2>
+          <p>Perbaiki kode di bawah, lalu klik Jalankan untuk cek error & syarat</p>
+        </div>
+        <div class="card-body">
+          <div class="tools">
+            <button class="btn" id="resetBtn">Reset Kode</button>
+            <button class="btn primary" id="runBtn" disabled>Jalankan (Run)</button>
+            <span class="pill" id="activeTitle">Tantangan belum dipilih</span>
+          </div>
+          
+          <textarea id="editor" spellcheck="false" placeholder="Pilih tantangan di sebelah kiri untuk memuat kode..." disabled></textarea>
+
+          <div class="split">
+            <div class="pane">
+              <div class="pane-header">
+                <h3>Preview</h3>
+              </div>
+              <div class="pane-content">
+                <iframe id="preview"></iframe>
+              </div>
+            </div>
+            <div class="pane">
+              <div class="pane-header">
+                <h3>Log & Validasi</h3>
+              </div>
+              <div class="pane-content">
+                <pre id="log">Log akan muncul di sini setelah menjalankan kode...</pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer">
+            <div class="score" id="scoreInfo">Selesai: 0/10</div>
+            <div>
+              <button class="btn good" id="finishBtn" disabled>Semua Lolos — Lihat Raport</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Modal konfirmasi mulai tes -->
+  <div class="modal" id="startModal">
+    <div class="modal-content">
+      <h2>Mulai Tes</h2>
+      <p>Anda akan memulai tes dengan waktu 180 menit (3 jam). Timer akan dimulai setelah Anda mengkonfirmasi.</p>
+      <p>Pastikan nama dan kelas sudah terisi dengan benar.</p>
+      <div class="modal-buttons">
+        <button class="btn" id="cancelStart">Batal</button>
+        <button class="btn primary" id="confirmStart">Mulai Tes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal waktu habis -->
+  <div class="modal" id="timeoutModal">
+    <div class="modal-content">
+      <h2>Waktu Habis</h2>
+      <p>Waktu pengerjaan tes telah habis. Anda dapat melihat hasil yang telah dikerjakan.</p>
+      <div class="modal-buttons">
+        <button class="btn primary" id="viewResults">Lihat Hasil</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal raport -->
+  <div class="modal" id="reportModal">
+    <div class="modal-content">
+      <div class="report" id="reportContent">
+        <!-- Raport akan diisi oleh JavaScript -->
+      </div>
+      <div class="modal-buttons">
+        <button class="btn" id="closeReport">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
